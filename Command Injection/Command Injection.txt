@@ -1,0 +1,74 @@
+What is command Injection?
+OS command injection (also known as shell injection) is a web security vulnerability that allows an attacker to 
+execute arbitrary operating system (OS) commands on the server that is running an application, and typically 
+fully compromise the application and all its data.
+
+Here are the top 25 parameters that could be vulnerable to code injection and similar RCE vulnerabilities:
+
+?cmd={payload}
+?exec={payload}
+?command={payload}
+?execute{payload}
+?ping={payload}
+?query={payload}
+?jump={payload}
+?code={payload}
+?reg={payload}
+?do={payload}
+?func={payload}
+?arg={payload}
+?option={payload}
+?load={payload}
+?process={payload}
+?step={payload}
+?read={payload}
+?function={payload}
+?req={payload}
+?feature={payload}
+?exe={payload}
+?module={payload}
+?payload={payload}
+?run={payload}
+?print={payload}
+/?query=
+/?email=
+/?id=
+/?username=
+/?user=
+/?to=
+/?from=
+/?search=
+/?query=
+/?q=
+/?s=
+/?shopId=
+/?blogId=
+/?phone=
+/?mode=
+/?next=
+/?firstname=
+/?lastname=
+/?locale=
+/?cmd=
+/?sys=
+/?system=
+productid=
+interfaceid=
+
+
+---------------------------------------------------------------------------------------------------------------
+Reference For Testing
+Cmd Exec --> Reference: https://portswigger.net/web-security/os-command-injection
+Blind Command Exec --> Reference: https://shahjerry33.medium.com/blind-command-injection-it-hurts-9f396c1f63f2
+---------------------------------------------------------------------------------------------------------------
+###Testing Reports Use while Testing###
+https://hackerone.com/reports/680480 
+https://musyokaian.medium.com/os-command-injection-vulnerability-22cc70e0e6a6
+https://medium.com/ax1al/os-command-injection-beginners-guide-637e1eed1fde
+https://medium.com/@ashikbhaskar94/blind-os-command-injection-87910f0d2276
+https://gupta-bless.medium.com/exploiting-command-injection-114b4c3e5a6e
+https://infosecwriteups.com/command-injection-poc-72cc3743f10d
+---------------------------------------------------------------------------------------------------------------
+Automation OS Command Injection Scanner
+
+https://github.com/commixproject/commix 

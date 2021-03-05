@@ -1,0 +1,33 @@
+List of Google Dorks to search for companies that have a responsible disclosure program or bug bounty program which are not affiliated with known bug bounty platforms such as HackerOne or Bugcrowd.
+
+inurl /bug bounty
+inurl : / security
+inurl:security.txt
+inurl:security "reward"
+inurl : /responsible disclosure
+inurl : /responsible-disclosure/ reward
+inurl : / responsible-disclosure/ swag
+responsible disclosure reward r=h:UK
+site:*.*.nl intext:security report reward
+inurl:responsible disclosure reward
+inurl:responsible disclosure bounty
+inurl:responsible disclosure swag
+site:*.*.nl intext:responsible disclosure reward
+responsible disclosure reward r=h:eu
+site:*.*.* inurl:bug inurl:bounty
+site:help.*.* inurl:bounty
+site:support.*.* intext:security report reward
+intext:security report monetary inurl:security
+intext:security report reward inurl:report
+site:security.*.* inurl: bounty
+inurl : / responsible-disclosure/ bounty
+inurl:'/responsible disclosure' hoodie
+responsible disclosure swag r=h:com
+responsible disclosure hall of fame
+responsible disclosure europe
+responsible disclosure white hat
+white hat program
+insite:"responsible disclosure" -inurl:nl
+intext responsible disclosure
+site eu responsible disclosure
+site .nl responsible disclosure
